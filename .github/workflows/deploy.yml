@@ -18,11 +18,16 @@ jobs:
         with:
           dotnet-version: '8.0'  # Replace with your target .NET version
 
-      - name: Navigate to project directory and publish
+      - name: Publish .NET Application
         run: |
-          cd DummyDotNetApp  # Navigate to the correct project directory
+          # Ensure the project directory exists
+          if (!(Test-Path -Path './DummyDotNetApp')) {
+            Write-Host "Error: 'DummyDotNetApp' directory does not exist."
+            exit 1
+          }
+          cd DummyDotNetApp  # Navigate to the project directory
           dotnet restore DummyDotNetApp.csproj
-          dotnet publish DummyDotNetApp.csproj -c Release -o ./publish  # Specify the project file explicitly
+          dotnet publish DummyDotNetApp.csproj -c Release -o ./publish  # Publish to ./publish directory
 
       - name: Set up SSH key for connection
         run: |
@@ -36,6 +41,6 @@ jobs:
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} powershell -Command "
             # IIS deployment script
             New-Item -Path 'C:\inetpub\wwwroot\DummyDotNetApp' -ItemType Directory -Force
-            Copy-Item -Path './publish/*' -Destination 'C:\inetpub\wwwroot\DummyDotNetApp' -Recurse
+            Copy-Item -Path './DummyDotNetApp/publish/*' -Destination 'C:\inetpub\wwwroot\DummyDotNetApp' -Recurse
             iisreset
           "
