@@ -18,11 +18,9 @@ jobs:
         with:
           dotnet-version: '8.0'  # Replace with your .NET version
           
-      - name: Navigate to project directory
-        run: cd DummyDotNetApp
-
-      - name: Publish .NET application
+      - name: Navigate to project directory and publish
         run: |
+          cd DummyDotNetApp  # Navigate to the project directory
           dotnet restore DummyDotNetApp.csproj  # Specify the .csproj file explicitly
           dotnet publish DummyDotNetApp.csproj -c Release -o ./publish  # Specify the .csproj file explicitly
 
@@ -38,4 +36,3 @@ jobs:
             New-Item -Path "C:\inetpub\wwwroot\DummyDotNetApp" -ItemType Directory -Force
             Copy-Item -Path "./publish/*" -Destination "C:\inetpub\wwwroot\DummyDotNetApp" -Recurse
             iisreset
-
