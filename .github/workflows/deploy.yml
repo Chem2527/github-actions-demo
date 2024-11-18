@@ -3,7 +3,7 @@ name: Deploy .NET Application to Windows EC2 with IIS
 on:
   push:
     branches:
-      - main  # Adjust the branch as necessary
+      - main  # Adjust the branch as ncessary
 
 jobs:
   deploy:
