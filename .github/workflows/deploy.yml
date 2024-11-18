@@ -1,6 +1,4 @@
-keys
-
-name: Deploy .NET Application to Windows EC2 wth IS
+name: Deploy
 
 on:
   push:
