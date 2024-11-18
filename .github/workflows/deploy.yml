@@ -23,8 +23,8 @@ jobs:
 
       - name: Publish .NET application
         run: |
-          dotnet restore
-          dotnet publish -c Release -o ./publish
+          dotnet restore DummyDotNetApp.csproj  # Specify the .csproj file explicitly
+          dotnet publish DummyDotNetApp.csproj -c Release -o ./publish  # Specify the .csproj file explicitly
 
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v0.1.6
