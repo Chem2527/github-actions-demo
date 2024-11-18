@@ -1,4 +1,4 @@
-name: Deploy .NET Application to Windows EC2 with IIS
+name: Deploy .NET Application to Windows EC2 wth IIS
 
 on:
   push:
