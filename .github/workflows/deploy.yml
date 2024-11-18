@@ -29,14 +29,14 @@ jobs:
           dotnet restore DummyDotNetApp.csproj
           dotnet publish DummyDotNetApp.csproj -c Release -o ./publish  # Publish to ./publish directory
 
-      - name: Install sshpass (for password-based authentication)
+      - name: Install Plink (for password-based SSH authentication)
         run: |
-          choco install sshpass  # Install sshpass on the GitHub runner
+          choco install putty -y  # Install PuTTY, which includes Plink
 
       - name: Deploy to Windows EC2 via SSH (Password-based)
         run: |
           echo "Starting SSH deployment..."
-          sshpass -p "${{ secrets.EC2_PASSWORD }}" ssh -o StrictHostKeyChecking=no administrator@${{ secrets.EC2_PUBLIC_IP }} powershell -Command "
+          plink.exe -batch -pw "${{ secrets.EC2_PASSWORD }}" administrator@${{ secrets.EC2_PUBLIC_IP }} powershell -Command "
           New-Item -Path 'C:\inetpub\wwwroot\DummyDotNetApp' -ItemType Directory -Force
           Copy-Item -Path './publish/*' -Destination 'C:\inetpub\wwwroot\DummyDotNetApp' -Recurse
           iisreset
