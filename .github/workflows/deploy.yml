@@ -17,6 +17,9 @@ jobs:
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0'  # Replace with your .NET version
+          
+      - name: Navigate to project directory
+        run: cd DummyDotNetApp
 
       - name: Publish .NET application
         run: |
