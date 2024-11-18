@@ -13,3 +13,5 @@ by default disk is offline make it online by right-clicking on disk and again ri
 
 
 http://localhost---> we will be able to see IIS home page on browser. download https://dotnet.microsoft.com/en-us/download/dotnet in windows ec2 and install it. open epowershell and verify the version by entering dotnet --version
+
+mkdir -p .github/workflows in git
