@@ -20,11 +20,6 @@ jobs:
 
       - name: Publish .NET Application
         run: |
-          # Ensure the project directory exists
-          if (!(Test-Path -Path './DummyDotNetApp')) {
-            Write-Host "Error: 'DummyDotNetApp' directory does not exist."
-            exit 1
-          }
           cd DummyDotNetApp  # Navigate to the project directory
           dotnet restore DummyDotNetApp.csproj
           dotnet publish DummyDotNetApp.csproj -c Release -o ./publish  # Publish to ./publish directory
@@ -36,9 +31,9 @@ jobs:
       - name: Deploy to Windows EC2 via SSH (Password-based)
         run: |
           echo "Starting SSH deployment..."
-          # Use plink with -batch and disable StrictHostKeyChecking using plink's own flags
-          plink.exe -batch -pw "${{ secrets.EC2_PASSWORD }}" administrator@${{ secrets.EC2_PUBLIC_IP }} powershell -Command "
-          # Accepting the host key automatically
+
+          # Use plink to connect, bypassing host key checks
+          plink.exe -batch -no-antispoof -pw "${{ secrets.EC2_PASSWORD }}" administrator@${{ secrets.EC2_PUBLIC_IP }} powershell -Command "
           $ErrorActionPreference = 'Stop';
           New-Item -Path 'C:\inetpub\wwwroot\DummyDotNetApp' -ItemType Directory -Force;
           Copy-Item -Path './publish/*' -Destination 'C:\inetpub\wwwroot\DummyDotNetApp' -Recurse;
