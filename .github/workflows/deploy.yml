@@ -36,9 +36,5 @@ jobs:
       - name: Deploy to Windows EC2 via SSH (Password-based)
         run: |
           echo "Starting SSH deployment..."
-          # Add EC2 host key to known hosts automatically to prevent interactive prompt
-          plink.exe -batch -pw "${{ secrets.EC2_PASSWORD }}" -ssh -o StrictHostKeyChecking=no administrator@${{ secrets.EC2_PUBLIC_IP }} powershell -Command "
-          New-Item -Path 'C:\inetpub\wwwroot\DummyDotNetApp' -ItemType Directory -Force
-          Copy-Item -Path './publish/*' -Destination 'C:\inetpub\wwwroot\DummyDotNetApp' -Recurse
-          iisreset
-          "
+          # Use plink with -batch and disable StrictHostKeyChecking using plink's own flags
+          plink.exe -batch -pw "${{ secrets.EC2_
