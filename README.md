@@ -25,3 +25,14 @@ Start-Service sshd
 Set-Service -Name sshd -StartupType 'Automatic'
 
 
+PS C:\Users\Administrator> icacls "C:\Users\Administrator\.ssh\authorized_keys" /inheritance:r
+processed file: C:\Users\Administrator\.ssh\authorized_keys
+Successfully processed 1 files; Failed processing 0 files
+PS C:\Users\Administrator> icacls "C:\Users\Administrator\.ssh\authorized_keys" /grant "Administrators:F"
+processed file: C:\Users\Administrator\.ssh\authorized_keys
+Successfully processed 1 files; Failed processing 0 files
+PS C:\Users\Administrator> icacls "C:\Users\Administrator\.ssh\authorized_keys" /grant "SYSTEM:F"
+processed file: C:\Users\Administrator\.ssh\authorized_keys
+Successfully processed 1 files; Failed processing 0 files
+
+
