@@ -8,39 +8,32 @@ on:
   workflow_dispatch:  # Allow manual trigger from GitHub UI
 
 jobs:
-  # Job to build and upload the artifact
-  build:
-    runs-on: ubuntu-latest  # or windows-latest depending on your runner
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Build the application
-        run: |
-          # Example build command (adjust for your application type)
-          dotnet publish -c Release -o ./publish
-
-      - name: Upload published artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: publish-artifact  # This is the name of the artifact
-          path: ./publish         # Path to the build output
-
-  # Job to deploy to EC2 after build is completed
   deploy:
-    needs: build  # Make sure the 'deploy' job waits for 'build' to complete
     runs-on: ubuntu-latest  # or windows-latest depending on your runner
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Download published artifact
-        uses: actions/download-artifact@v3
+      
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v3
         with:
-          name: publish-artifact  # This must match the name used in 'upload-artifact'
-          path: ./publish         # The directory where the artifact will be downloaded
+          dotnet-version: '6.0'  # Specify your target .NET version here
+
+      - name: Restore dependencies
+        run: |
+          cd DummyDotNetApp  # Change directory to where the .csproj file is
+          dotnet restore
+
+      - name: Build the project
+        run: |
+          cd DummyDotNetApp  # Ensure you're in the correct directory
+          dotnet build --configuration Release  # Build the project in Release mode
+
+      - name: Publish the project
+        run: |
+          cd DummyDotNetApp  # Ensure you're in the correct directory
+          dotnet publish --configuration Release --output ./publish  # Publish the app
 
       - name: Deploy to EC2 server via SSH
         run: |
@@ -52,7 +45,7 @@ jobs:
 
               # Copy published files to the IIS folder
               Write-Host 'Copying files to the IIS folder...'; ^ 
-              Copy-Item -Path 'D:\a\github-actions-demo\github-actions-demo\\DummyDotNetApp\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse -Force; ^
+              Copy-Item -Path 'D:\\a\\github-actions-demo\\github-actions-demo\\DummyDotNetApp\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse -Force; ^
 
               # Verify files are copied
               Write-Host 'Verifying copied files in IIS folder...'; ^ 
