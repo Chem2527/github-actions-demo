@@ -36,12 +36,22 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
+      - name: Upload published files to EC2 via SCP
+        run: |
+          echo "Starting SCP transfer of published files..."
+          scp -i ~/.ssh/id_rsa -r ./DummyDotNetApp/publish/* administrator@${{ secrets.EC2_PUBLIC_IP }}:/tmp/publish
+
       - name: Deploy to Windows EC2 via SSH
         run: |
           echo "Starting SSH deployment..."
           ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} "
-            powershell -NoProfile -Command \" 
+            powershell -NoProfile -Command \"
+            # Create destination folder if it doesn't exist
             New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force; 
-            Copy-Item -Path 'D:\\a\\github-actions-demo\\DummyDotNetApp\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse -Force; 
+            # Copy files to IIS folder
+            Copy-Item -Path 'C:\\tmp\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse -Force; 
+            # Reset IIS
             iisreset;
-          \""
+          \"
+          "
+
