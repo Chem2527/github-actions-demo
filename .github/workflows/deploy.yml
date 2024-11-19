@@ -1,3 +1,12 @@
+name: Deploy to EC2
+
+# Trigger the workflow on push or manually
+on:
+  push:
+    branches:
+      - main  # or your default branch
+  workflow_dispatch:  # Allow manual trigger from GitHub UI
+
 jobs:
   deploy:
     runs-on: ubuntu-latest  # or windows-latest depending on your runner
