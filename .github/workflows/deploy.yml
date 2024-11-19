@@ -1,5 +1,3 @@
-keys
-
 name: Deploy .NET Application to Windows EC2 wth IS
 
 on:
