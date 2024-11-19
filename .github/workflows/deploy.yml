@@ -36,15 +36,20 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to Windows EC2 via SSH
+      - name: Deploy to Windows EC2 via SSH (PowerShell)
         run: |
           echo "Starting SSH deployment..."
           ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} "
             powershell -NoProfile -Command ^
-              & { ^
+              & { ^ 
+                # Create the destination folder if it does not exist
                 New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force; ^
-                Copy-Item -Path '$(pwd)\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse; ^
-                iisreset; ^
+
+                # Copy the files from the published directory to the IIS site folder
+                Copy-Item -Path 'C:\\Users\\GitHub\\actions-runner\\_work\\github-actions-demo\\github-actions-demo\\DummyDotNetApp\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse; ^
+
+                # Reset IIS to apply changes
+                iisreset; ^ 
               }"
         shell: pwsh
         env:
