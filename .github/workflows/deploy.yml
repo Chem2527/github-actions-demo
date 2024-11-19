@@ -46,7 +46,7 @@ jobs:
                 New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force; ^
 
                 # Copy the files from the published directory to the IIS site folder
-                Copy-Item -Path 'C:\\Users\\GitHub\\actions-runner\\_work\\github-actions-demo\\github-actions-demo\\DummyDotNetApp\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse; ^
+                Copy-Item -Path '${{ github.workspace }}\\DummyDotNetApp\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse; ^
 
                 # Reset IIS to apply changes
                 iisreset; ^ 
