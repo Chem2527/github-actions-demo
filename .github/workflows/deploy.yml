@@ -1,67 +1,48 @@
-name: Deploy to EC2
+keys
 
-# Trigger the workflow on push or manually
+name: Deploy .NET Application to Windows EC2 wth IS
+
 on:
   push:
     branches:
-      - main  # or your default branch
-  workflow_dispatch:  # Allow manual trigger from GitHub UI
+      - main  # Adjust the branch as ncessary
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # or windows-latest depending on your runner
+    runs-on: windows-latest  # This uses a GitHub-hosted Windows runner
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
-      - name: Set up .NET
+
+      - name: Set up .NET SDK
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0'  # Specify your target .NET version here
+          dotnet-version: '8.0'  # Replace with your target .NET version
 
-      - name: Restore dependencies
+      - name: Publish .NET Application
         run: |
-          cd DummyDotNetApp  # Change directory to where the .csproj file is
-          dotnet restore
+          # Ensure the project directory exists
+          if (!(Test-Path -Path './DummyDotNetApp')) {
+            Write-Host "Error: 'DummyDotNetApp' directory does not exist."
+            exit 1
+          }
+          cd DummyDotNetApp  # Navigate to the project directory
+          dotnet restore DummyDotNetApp.csproj
+          dotnet publish DummyDotNetApp.csproj -c Release -o ./publish  # Publish to ./publish directory
 
-      - name: Build the project
-        run: |
-          cd DummyDotNetApp  # Ensure you're in the correct directory
-          dotnet build --configuration Release  # Build the project in Release mode
-
-      - name: Publish the project
-        run: |
-          cd DummyDotNetApp  # Ensure you're in the correct directory
-          dotnet publish --configuration Release --output ./publish  # Publish the app
-
-      - name: Set up SSH key
+      - name: Set up SSH key for connection
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to EC2 server via SSH
-        run: |
+      - name: Deploy to Windows EC2 via SSH
+        run:  |
           echo "Starting SSH deployment..."
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_HOSTNAME }} "
-            # Ensure we are running in PowerShell
-            & 'C:\\Program Files\\PowerShell\\7\\pwsh.exe' -Command ^
-              # Create destination folder if it doesn't exist
-              New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force; ^
-
-              # Copy published files to the IIS folder
-              Write-Host 'Copying files to the IIS folder...'; ^ 
-              Copy-Item -Path 'D:\\a\\github-actions-demo\\github-actions-demo\\DummyDotNetApp\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse -Force; ^
-
-              # Verify files are copied
-              Write-Host 'Verifying copied files in IIS folder...'; ^ 
-              Get-ChildItem -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp'; ^
-
-              # Reset IIS to apply changes
-              Write-Host 'Resetting IIS...'; ^ 
-              iisreset; ^ 
+          ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} powershell -Command "
+          New-Item -Path 'C:\inetpub\wwwroot\DummyDotNetApp' -ItemType Directory -Force
+          Copy-Item -Path './publish/*' -Destination 'C:\inetpub\wwwroot\DummyDotNetApp' -Recurse
+          iisreset
           "
-          shell: /usr/bin/bash -e {0}
-        env:
-          DOTNET_ROOT: C:\Program Files\dotnet
