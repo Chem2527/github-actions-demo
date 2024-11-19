@@ -18,7 +18,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '6.0'  # Specify your target .NET version here
+          dotnet-version: '8.0'  # Specify your target .NET version here
 
       - name: Restore dependencies
         run: |
@@ -61,6 +61,6 @@ jobs:
               Write-Host 'Resetting IIS...'; ^ 
               iisreset; ^ 
           "
-          shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+        shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
         env:
           DOTNET_ROOT: C:\Program Files\dotnet
