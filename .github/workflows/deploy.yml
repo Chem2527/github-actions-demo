@@ -32,14 +32,16 @@ jobs:
       - name: Set up SSH key for connection
         run: |
           mkdir -p C:\Users\runneradmin\.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > C:\Users\runneradmin\.ssh\id_rsa
+          $keyContent = "${{ secrets.EC2_SSH_PRIVATE_KEY }}"
+          $keyContent | Out-File -Encoding ASCII -FilePath C:\Users\runneradmin\.ssh\id_rsa
           icacls C:\Users\runneradmin\.ssh\id_rsa /inheritance:r /grant:r "runneradmin:(R)"
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> C:\Users\runneradmin\.ssh\known_hosts
+
       - name: Deploy to Windows EC2 via SSH
-        run:  |
+        run: |
           echo "Starting SSH deployment..."
-          ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} powershell -Command "
+          ssh -v -o StrictHostKeyChecking=no -i C:/Users/runneradmin/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} powershell -Command "
           New-Item -Path 'C:\inetpub\wwwroot\DummyDotNetApp' -ItemType Directory -Force
-          Copy-Item -Path './publish/*' -Destination 'C:\inetpub\wwwroot\DummyDotNetApp' -Recurse
+          Copy-Item -Path 'C:\actions-runner\_work\DummyDotNetApp\publish\*' -Destination 'C:\inetpub\wwwroot\DummyDotNetApp' -Recurse
           iisreset
           "
