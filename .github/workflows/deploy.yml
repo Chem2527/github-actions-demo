@@ -24,6 +24,12 @@ jobs:
           dotnet restore DummyDotNetApp.csproj
           dotnet publish DummyDotNetApp.csproj -c Release -o ./publish  # Publish to ./publish directory
 
+      - name: Upload published files as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: publish-artifact
+          path: ./DummyDotNetApp/publish/
+
       - name: Set up SSH key for connection
         run: |
           mkdir -p ~/.ssh
@@ -31,16 +37,31 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
-      - name: Deploy to Windows EC2 via SSH (PowerShell)
+      - name: Download artifact and deploy to Windows EC2 via SSH (PowerShell)
         run: |
+          # Download the artifact containing the published files using actions/download-artifact
+          echo "Downloading published artifact..."
+          actions/download-artifact@v3:
+            name: publish-artifact
+            path: ./publish
+
+          # SSH command to deploy the app to the EC2 server
           echo "Starting SSH deployment..."
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} "
             powershell -NoProfile -Command ^
               # Create destination folder if it doesn't exist
               New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force; ^
+
               # Copy published files to the IIS folder
+              Write-Host 'Copying files to the IIS folder...'; ^
               Copy-Item -Path '${{ github.workspace }}\\DummyDotNetApp\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse -Force; ^
+
+              # Verify files are copied
+              Write-Host 'Verifying copied files in IIS folder...'; ^
+              Get-ChildItem -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp'; ^
+
               # Reset IIS to apply changes
+              Write-Host 'Resetting IIS...'; ^
               iisreset; ^
             "
         shell: pwsh
