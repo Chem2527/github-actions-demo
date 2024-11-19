@@ -35,10 +35,16 @@ jobs:
           cd DummyDotNetApp  # Ensure you're in the correct directory
           dotnet publish --configuration Release --output ./publish  # Publish the app
 
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+
       - name: Deploy to EC2 server via SSH
         run: |
           echo "Starting SSH deployment..."
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@*** "
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_HOSTNAME }} "
             powershell -NoProfile -Command ^
               # Create destination folder if it doesn't exist
               New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force; ^
