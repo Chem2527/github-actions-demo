@@ -1,45 +1,48 @@
-name: Deploy to IIS Server
+keys
+
+name: Deploy .NET Application to Windows EC2 wth IS
 
 on:
   push:
     branches:
-      - main
+      - main  # Adjust the branch as ncessary
 
 jobs:
   deploy:
-    runs-on: windows-latest
+    runs-on: windows-latest  # This uses a GitHub-hosted Windows runner
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Setup .NET SDK
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: '7.x'
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '8.0'  # Replace with your target .NET version
 
-    - name: Publish .NET Application
-      run: |
-        dotnet restore
-        dotnet build --configuration Release
-        dotnet publish --configuration Release --output ./publish
+      - name: Publish .NET Application
+        run: |
+          # Ensure the project directory exists
+          if (!(Test-Path -Path './DummyDotNetApp')) {
+            Write-Host "Error: 'DummyDotNetApp' directory does not exist."
+            exit 1
+          }
+          cd DummyDotNetApp  # Navigate to the project directory
+          dotnet restore DummyDotNetApp.csproj
+          dotnet publish DummyDotNetApp.csproj -c Release -o ./publish  # Publish to ./publish directory
 
-    - name: Configure SSH Key
-      run: |
-        mkdir C:\Users\runneradmin\.ssh
-        echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > C:\Users\runneradmin\.ssh\id_rsa
-        chmod 600 C:\Users\runneradmin\.ssh\id_rsa
+      - name: Set up SSH key for connection
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
-    - name: Add Host to Known Hosts
-      run: |
-        ssh-keyscan -H <EC2_PUBLIC_IP> >> C:\Users\runneradmin\.ssh\known_hosts
-
-    - name: Deploy Application via SSH
-      run: |
-        ssh -v -o StrictHostKeyChecking=no -i C:/Users/runneradmin/.ssh/id_rsa administrator@<EC2_PUBLIC_IP> powershell -Command "
-        New-Item -Path 'C:\inetpub\wwwroot\DummyDotNetApp' -ItemType Directory -Force;
-        Copy-Item -Path 'C:\actions-runner\_work\DummyDotNetApp\publish\*' -Destination 'C:\inetpub\wwwroot\DummyDotNetApp' -Recurse;
-        iisreset;
-        "
-      env:
-        DOTNET_ROOT: C:\Program Files\dotnet
+      - name: Deploy to Windows EC2 via SSH
+        run:  |
+          echo "Starting SSH deployment..."
+          ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} powershell -Command "
+          New-Item -Path 'C:\inetpub\wwwroot\DummyDotNetApp' -ItemType Directory -Force
+          Copy-Item -Path './publish/*' -Destination 'C:\inetpub\wwwroot\DummyDotNetApp' -Recurse
+          iisreset
+          "
