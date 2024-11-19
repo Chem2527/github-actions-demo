@@ -8,18 +8,39 @@ on:
   workflow_dispatch:  # Allow manual trigger from GitHub UI
 
 jobs:
-  deploy:
+  # Job to build and upload the artifact
+  build:
     runs-on: ubuntu-latest  # or windows-latest depending on your runner
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      
+
+      - name: Build the application
+        run: |
+          # Example build command (adjust for your application type)
+          dotnet publish -c Release -o ./publish
+
+      - name: Upload published artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: publish-artifact  # This is the name of the artifact
+          path: ./publish         # Path to the build output
+
+  # Job to deploy to EC2 after build is completed
+  deploy:
+    needs: build  # Make sure the 'deploy' job waits for 'build' to complete
+    runs-on: ubuntu-latest  # or windows-latest depending on your runner
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Download published artifact
         uses: actions/download-artifact@v3
         with:
-          name: publish-artifact
-          path: ./publish
+          name: publish-artifact  # This must match the name used in 'upload-artifact'
+          path: ./publish         # The directory where the artifact will be downloaded
 
       - name: Deploy to EC2 server via SSH
         run: |
@@ -41,6 +62,6 @@ jobs:
               Write-Host 'Resetting IIS...'; ^ 
               iisreset; ^ 
           "
-        shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+          shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
         env:
           DOTNET_ROOT: C:\Program Files\dotnet
