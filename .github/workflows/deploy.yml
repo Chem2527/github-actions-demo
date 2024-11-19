@@ -20,19 +20,10 @@ jobs:
 
       - name: Publish .NET Application
         run: |
-          # Ensure the project directory exists
-          if (!(Test-Path -Path './DummyDotNetApp')) {
-            Write-Host "Error: 'DummyDotNetApp' directory does not exist."
-            exit 1
-          }
           cd DummyDotNetApp  # Navigate to the project directory
           dotnet restore DummyDotNetApp.csproj
           dotnet publish DummyDotNetApp.csproj -c Release -o ./publish  # Publish to ./publish directory
 
-          # List the contents of the publish directory for debugging
-          Write-Host "Contents of publish directory:"
-          Get-ChildItem -Path ./publish
-          
       - name: Set up SSH key for connection
         run: |
           mkdir -p ~/.ssh
@@ -43,35 +34,15 @@ jobs:
       - name: Deploy to Windows EC2 via SSH (PowerShell)
         run: |
           echo "Starting SSH deployment..."
-          ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} "
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} "
             powershell -NoProfile -Command ^
-              & { ^ 
-                # Debugging: Check if the destination folder exists
-                if (Test-Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp') {
-                  Write-Host 'Destination folder exists.'
-                } else {
-                  Write-Host 'Destination folder does not exist. Creating...'
-                }
-
-                # Create the destination folder if it does not exist
-                New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force; ^
-
-                # Debugging: List files in the publish directory to verify files exist
-                Write-Host "Listing files from the publish directory:"
-                Get-ChildItem -Path '${{ github.workspace }}\\DummyDotNetApp\\publish\\'
-
-                # Copy the files from the published directory to the IIS site folder
-                Write-Host "Copying files to IIS site folder..."
-                Copy-Item -Path '${{ github.workspace }}\\DummyDotNetApp\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse -Force
-
-                # Verify files are copied
-                Write-Host "Verifying copied files in destination folder:"
-                Get-ChildItem -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp'
-
-                # Reset IIS to apply changes
-                Write-Host "Resetting IIS..."
-                iisreset
-              }"
+              # Create destination folder if it doesn't exist
+              New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force; ^
+              # Copy published files to the IIS folder
+              Copy-Item -Path '${{ github.workspace }}\\DummyDotNetApp\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse -Force; ^
+              # Reset IIS to apply changes
+              iisreset; ^
+            "
         shell: pwsh
         env:
           DOTNET_ROOT: C:\Program Files\dotnet
