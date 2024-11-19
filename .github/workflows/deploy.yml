@@ -18,7 +18,7 @@ jobs:
       - name: Set up .NET
         uses: actions/setup-dotnet@v3
         with:
-          dotnet-version: '8.0'  # Specify your target .NET version here
+          dotnet-version: '6.0'  # Specify your target .NET version here
 
       - name: Restore dependencies
         run: |
@@ -45,7 +45,8 @@ jobs:
         run: |
           echo "Starting SSH deployment..."
           ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_HOSTNAME }} "
-            powershell -NoProfile -Command ^
+            # Ensure we are running in PowerShell
+            & 'C:\\Program Files\\PowerShell\\7\\pwsh.exe' -Command ^
               # Create destination folder if it doesn't exist
               New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force; ^
 
@@ -61,6 +62,6 @@ jobs:
               Write-Host 'Resetting IIS...'; ^ 
               iisreset; ^ 
           "
-        shell: C:\Program Files\PowerShell\7\pwsh.EXE -command ". '{0}'"
+          shell: /usr/bin/bash -e {0}
         env:
           DOTNET_ROOT: C:\Program Files\dotnet
