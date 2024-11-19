@@ -1,4 +1,4 @@
-name: Deploy to instance
+name: Deploy to instace
 
 on:
   push:
