@@ -39,19 +39,18 @@ jobs:
       - name: Upload published files to EC2 via SCP
         run: |
           echo "Starting SCP transfer of published files..."
-          scp -i ~/.ssh/id_rsa -r ./DummyDotNetApp/publish/* administrator@${{ secrets.EC2_PUBLIC_IP }}:/tmp/publish
+          scp -i ~/.ssh/id_rsa -r ./DummyDotNetApp/publish/* administrator@${{ secrets.EC2_PUBLIC_IP }}:/c/publish
 
       - name: Deploy to Windows EC2 via SSH
         run: |
           echo "Starting SSH deployment..."
           ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} "
             powershell -NoProfile -Command \"
-            # Create destination folder if it doesn't exist
-            New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force; 
-            # Copy files to IIS folder
-            Copy-Item -Path 'C:\\tmp\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse -Force; 
-            # Reset IIS
+            # Create destination folder in IIS if it doesn't exist
+            New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force;
+            # Copy files from publish folder to IIS directory
+            Copy-Item -Path 'C:\\publish\\*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse -Force;
+            # Reset IIS to apply changes
             iisreset;
-          \"
+            \"
           "
-
