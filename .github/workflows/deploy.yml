@@ -1,9 +1,9 @@
-name: Deploy .NET Application to Windows EC2 wth IS
+name: Deploy .NET Application to Windows EC2 with IIS
 
 on:
   push:
     branches:
-      - main  # Adjust the branch as ncessary
+      - main  # Adjust the branch as necessary
 
 jobs:
   deploy:
@@ -37,10 +37,10 @@ jobs:
           ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
       - name: Deploy to Windows EC2 via SSH
-        run:  |
+        run: |
           echo "Starting SSH deployment..."
           ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} powershell -Command "
-          New-Item -Path 'C:\inetpub\wwwroot\DummyDotNetApp' -ItemType Directory -Force
-          Copy-Item -Path './publish/*' -Destination 'C:\inetpub\wwwroot\DummyDotNetApp' -Recurse
-          iisreset
+            New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force;
+            Copy-Item -Path './publish/*' -Destination 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -Recurse;
+            iisreset;
           "
