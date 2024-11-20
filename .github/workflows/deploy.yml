@@ -73,8 +73,8 @@ jobs:
       - name: Upload published files to EC2 via SCP
         run: |
           echo "Starting SCP transfer of published files..."
-          # Explicitly use the full Windows path (double backslashes) for SCP
-          scp -i ~/.ssh/id_rsa -r "${{ github.workspace }}\\*" administrator@${{ secrets.EC2_PUBLIC_IP }}:C:\\publish
+          # Correctly reference Windows paths with double backslashes for SCP
+          scp -i ~/.ssh/id_rsa -r "${{ github.workspace }}\\*" administrator@${{ secrets.EC2_PUBLIC_IP }}:"C:\\publish"
         shell: pwsh
 
       - name: Deploy to Windows EC2 via SSH
