@@ -6,7 +6,7 @@ on:
       - main  # Adjust the branch as necessary
 
 jobs:
-  deploy:
+  build:
     runs-on: windows-latest  # This uses a GitHub-hosted Windows runner
 
     steps:
@@ -29,6 +29,25 @@ jobs:
           dotnet restore DummyDotNetApp.csproj
           dotnet publish DummyDotNetApp.csproj -c Release -o ./publish  # Publish to ./publish directory
 
+      - name: Upload published files as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-app-artifact
+          path: ./DummyDotNetApp/publish  # Path to your published files
+
+  deploy:
+    runs-on: windows-latest
+    needs: build  # Ensure the deploy job runs after the build job
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Download artifact from build job
+        uses: actions/download-artifact@v4
+        with:
+          name: dotnet-app-artifact  # Name of the artifact from the build job
+          
       - name: Set up SSH key for connection
         run: |
           mkdir -p ~/.ssh
@@ -39,7 +58,7 @@ jobs:
       - name: Upload published files to EC2 via SCP
         run: |
           echo "Starting SCP transfer of published files..."
-          scp -i ~/.ssh/id_rsa -r ./DummyDotNetApp/publish/* administrator@${{ secrets.EC2_PUBLIC_IP }}:/c/publish
+          scp -i ~/.ssh/id_rsa -r ./dotnet-app-artifact/* administrator@${{ secrets.EC2_PUBLIC_IP }}:/c/publish
 
       - name: Deploy to Windows EC2 via SSH
         run: |
