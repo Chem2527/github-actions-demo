@@ -45,6 +45,12 @@ jobs:
         with:
           name: dotnet-app-artifact
 
+      - name: List files in the artifact directory for debugging
+        run: |
+          echo "Listing downloaded artifact files..."
+          dir ./dotnet-app-artifact
+        shell: pwsh
+
       - name: Set up SSH key for connection
         run: |
           mkdir -p ~/.ssh
@@ -55,7 +61,6 @@ jobs:
       - name: Upload published files to EC2 via SCP
         run: |
           echo "Starting SCP transfer of published files..."
-          # Use the correct path after downloading the artifact
           scp -i ~/.ssh/id_rsa -r ./dotnet-app-artifact/* administrator@${{ secrets.EC2_PUBLIC_IP }}:/c/publish
 
       - name: Deploy to Windows EC2 via SSH
