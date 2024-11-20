@@ -29,45 +29,38 @@ jobs:
           dotnet restore DummyDotNetApp.csproj
           dotnet publish DummyDotNetApp.csproj -c Release -o ./publish  # Publish to ./publish directory
 
-      - name: Upload published files as artifact
+      - name: Upload published files to artifact for deployment
         uses: actions/upload-artifact@v4
         with:
           name: dotnet-app-artifact
-          path: ./DummyDotNetApp/publish  # Path to your published files
+          path: ./DummyDotNetApp/publish
 
   deploy:
-    runs-on: windows-latest
-    needs: build  # Ensure the deploy job runs after the build job
+    runs-on: windows-latest  # This uses a GitHub-hosted Windows runner
+    needs: build  # This makes sure the 'build' job completes first
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
-          name: dotnet-app-artifact  # Name of the artifact from the build job
-          
+          name: dotnet-app-artifact
+
       - name: Set up SSH key for connection
         run: |
-          # Create the .ssh directory on Windows
-          New-Item -ItemType Directory -Force -Path C:\Users\runneradmin\.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > C:\Users\runneradmin\.ssh\id_rsa
-          # Set appropriate permissions for the private key
-          icacls C:\Users\runneradmin\.ssh\id_rsa /inheritance:r /grant:r "$($env:USERNAME):(R)"
-          # Add EC2 host to known hosts
-          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> C:\Users\runneradmin\.ssh\known_hosts
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
 
       - name: Upload published files to EC2 via SCP
         run: |
           echo "Starting SCP transfer of published files..."
-          # Use the correct path after downloading the artifact
-          scp -i C:\Users\runneradmin\.ssh\id_rsa -r ./dotnet-app-artifact/* administrator@${{ secrets.EC2_PUBLIC_IP }}:/c/publish
+          scp -i ~/.ssh/id_rsa -r ./dotnet-app-artifact/* administrator@${{ secrets.EC2_PUBLIC_IP }}:/c/publish
 
       - name: Deploy to Windows EC2 via SSH
         run: |
           echo "Starting SSH deployment..."
-          ssh -v -o StrictHostKeyChecking=no -i C:\Users\runneradmin\.ssh\id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} "
+          ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} "
             powershell -NoProfile -Command \"
             # Create destination folder in IIS if it doesn't exist
             New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force;
