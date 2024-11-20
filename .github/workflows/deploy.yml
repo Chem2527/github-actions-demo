@@ -61,7 +61,9 @@ jobs:
       - name: Upload published files to EC2 via SCP
         run: |
           echo "Starting SCP transfer of published files..."
-          scp -i ~/.ssh/id_rsa -r ${{ github.workspace }}/* administrator@${{ secrets.EC2_PUBLIC_IP }}:/c/publish
+          # Correct path to the downloaded artifact folder in the GitHub Actions workspace
+          scp -i ~/.ssh/id_rsa -r "${{ github.workspace }}\\dotnet-app-artifact\\*" administrator@${{ secrets.EC2_PUBLIC_IP }}:/c/publish
+        shell: pwsh
 
       - name: Deploy to Windows EC2 via SSH
         run: |
