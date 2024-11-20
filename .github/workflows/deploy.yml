@@ -50,20 +50,24 @@ jobs:
           
       - name: Set up SSH key for connection
         run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> ~/.ssh/known_hosts
+          # Create the .ssh directory on Windows
+          New-Item -ItemType Directory -Force -Path C:\Users\runneradmin\.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > C:\Users\runneradmin\.ssh\id_rsa
+          # Set appropriate permissions for the private key
+          icacls C:\Users\runneradmin\.ssh\id_rsa /inheritance:r /grant:r "$($env:USERNAME):(R)"
+          # Add EC2 host to known hosts
+          ssh-keyscan -H ${{ secrets.EC2_PUBLIC_IP }} >> C:\Users\runneradmin\.ssh\known_hosts
 
       - name: Upload published files to EC2 via SCP
         run: |
           echo "Starting SCP transfer of published files..."
-          scp -i ~/.ssh/id_rsa -r ./dotnet-app-artifact/* administrator@${{ secrets.EC2_PUBLIC_IP }}:/c/publish
+          # Use the correct path after downloading the artifact
+          scp -i C:\Users\runneradmin\.ssh\id_rsa -r ./dotnet-app-artifact/* administrator@${{ secrets.EC2_PUBLIC_IP }}:/c/publish
 
       - name: Deploy to Windows EC2 via SSH
         run: |
           echo "Starting SSH deployment..."
-          ssh -v -o StrictHostKeyChecking=no -i ~/.ssh/id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} "
+          ssh -v -o StrictHostKeyChecking=no -i C:\Users\runneradmin\.ssh\id_rsa administrator@${{ secrets.EC2_PUBLIC_IP }} "
             powershell -NoProfile -Command \"
             # Create destination folder in IIS if it doesn't exist
             New-Item -Path 'C:\\inetpub\\wwwroot\\DummyDotNetApp' -ItemType Directory -Force;
