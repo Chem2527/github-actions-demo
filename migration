@@ -1,0 +1,35 @@
+GitHub actions cli download
+
+gh --version
+
+gh auth login
+
+gh extension install github/gh-actions-importer
+
+gh actions-importer --help
+
+gh actions-importer update
+
+GitHub pat token:  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
+
+
+New app password bitbucket:  ATBBeCCMZYM8RBmhVcHk5sm9ge3mDF1A768C
+bitbucket repo token:
+
+ATCTT3xFfGN04xlUHFUpVQ17-VFbyfN6OzNsnt6Aw0VOltXcm6fY9mtPom787UraY2zGdfQ-3bjjdrFI9FgsHMhLrvOjHEZBIZJzgpxJQAc7WxiM8NogdpaonKAmbHEhI-2hargECbOeXtDn5HkIMvEjWI5N6GMg_aiijplLqrgqBv_oZAtgLBM=DE338D08
+
+gh actions-importer audit bitbucket --workspace fe-be1 --output-dir "/c/Users/SaikrishnaKakumanu/Downloads"  --bitbucket-access-token TBB8aKw2QqLF4JmppAcNLHQ9rfC68076CBA
+
+
+gh actions-importer audit bitbucket ^
+--workspace fe-be1 ^
+--project-key PROJ ^
+--output-dir "C:/Temp" ^
+--bitbucket-access-token ATCTT3xFfGN04xlUHFUpVQ17-VFbyfN6OzNsnt6Aw0VOltXcm6fY9mtPom787UraY2zGdfQ-3bjjdrFI9FgsHMhLrvOjHEZBIZJzgpxJQAc7WxiM8NogdpaonKAmbHEhI-2hargECbOeXtDn5HkIMvEjWI5N6GMg_aiijplLqrgqBv_oZAtgLBM=DE338D08 ^
+--github-access-token 
+
+
+
+curl -u fe-be-admin:ATBBeCCMZYM8RBmhVcHk5sm9ge3mDF1A768C  https://api.bitbucket.org/2.0/repositories/fe-be1
+
+
