@@ -33,3 +33,11 @@ gh actions-importer audit bitbucket ^
 curl -u fe-be-admin:ATBBeCCMZYM8RBmhVcHk5sm9ge3mDF1A768C  https://api.bitbucket.org/2.0/repositories/fe-be1
 
 
+gh actions-importer forecast bitbucket --workspace fe-be1 --output-dir tmp/forecast_reports --bitbucket-access-token ATCTT3xFfGN04xlUHFUpVQ17-VFbyfN6OzNsnt6Aw0VOltXcm6fY9mtPom787UraY2zGdfQ-3bjjdrFI9FgsHMhLrvOjHEZBIZJzgpxJQAc7WxiM8NogdpaonKAmbHEhI-2hargECbOeXtDn5HkIMvEjWI5N6GMg_aiijplLqrgqBv_oZAtgLBM=DE338D08
+
+
+C:\Users\SaikrishnaKakumanu\Downloads>gh actions-importer migrate bitbucket --workspace fe-be1 --repository demo --target-url https://github.com/Chem2527/sample-01 --output-dir tmp/dry-runN09vzBC0j4myI --github-access-token  --bitbucket-access-token ATCTT3xFfGN04xlUHFUpVQ17-VFbyfN6OzNsnt6Aw0VOltXcm6fY9mtPom787UraY2zGdfQ-3bjjdrFI9FgsHMhLrvOjHEZBIZJzgpxJQAc7WxiM8NogdpaonKAmbHEhI-2hargECbOeXtDn5HkIMvEjWI5N6GMg_aiijplLqrgqBv_oZAtgLBM=DE338D08
+[2024-11-23 11:18:40] Logs: 'tmp/dry-runN09vzBC0j4myI/log/valet-20241123-111840.log'
+[2024-11-23 11:18:51] Pull request: 'https://github.com/Chem2527/sample-01/pull/1'
+
+
